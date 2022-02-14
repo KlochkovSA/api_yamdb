@@ -17,7 +17,33 @@ SCORE_CHOICE = (
 
 
 class Title(models.Model):
-    pass
+    name = models.TextField(
+        verbose_name='Название произведения',
+    )
+    year = models.DateField(
+        'Дата публикации',
+    )
+    category = models.ForeignKey(
+        'Category',
+        models.SET_NULL,
+        blank=True,
+        related_name='category',
+        null=True,
+    )
+
+
+class Category(models.Model):
+    name = models.TextField(
+        verbose_name='Название категории',
+    )
+    slug = models.SlugField(unique=True)
+
+
+class Genre(models.Model):
+    name = models.TextField(
+        verbose_name='Название жанра',
+    )
+    slug = models.SlugField(unique=True)
 
 
 class Review(models.Model):
