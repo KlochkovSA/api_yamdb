@@ -17,7 +17,8 @@ SCORE_CHOICE = (
 
 
 class Title(models.Model):
-    name = models.TextField(
+    name = models.CharField(
+        max_length=200,
         verbose_name='Название произведения',
     )
     description = models.TextField(
@@ -38,14 +39,16 @@ class Title(models.Model):
 
 
 class Category(models.Model):
-    name = models.TextField(
+    name = models.CharField(
+        max_length=200,
         verbose_name='Название категории',
     )
     slug = models.SlugField(unique=True)
 
 
 class Genre(models.Model):
-    name = models.TextField(
+    name = models.CharField(
+        max_length=200,
         verbose_name='Название жанра',
     )
     slug = models.SlugField(unique=True)
@@ -68,7 +71,7 @@ class Review(models.Model):
         related_name='review',
         verbose_name='Автор'
     )
-    score = models.CharField(
+    score = models.IntegerField(
         max_length=1,
         choices=SCORE_CHOICE,
         null=False
