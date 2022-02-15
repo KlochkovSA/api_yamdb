@@ -20,6 +20,9 @@ class Title(models.Model):
     name = models.TextField(
         verbose_name='Название произведения',
     )
+    description = models.TextField(
+        verbose_name='Описание произведения',
+    )
     year = models.DateField(
         'Дата публикации',
     )
