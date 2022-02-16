@@ -3,4 +3,8 @@ from django.db import models
 
 
 class User(AbstractUser):
-    pass
+    confirmation_code = models.CharField(
+        max_length=100,
+        null=True,
+        verbose_name='Confirmation Code'
+    )
