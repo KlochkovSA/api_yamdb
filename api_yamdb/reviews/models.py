@@ -30,28 +30,37 @@ class Title(models.Model):
         'Дата публикации',
     )
     category = models.ForeignKey(
-        'Category',
-        models.SET_NULL,
-        blank=True,
-        related_name='category',
+        to='Category',
+        on_delete=models.SET_NULL,
         null=True,
+        related_name='category',
     )
+    genre = models.ManyToManyField(to='Genre')
+
+    def __str__(self):
+        return self.name
 
 
 class Category(models.Model):
     name = models.CharField(
-        max_length=200,
+        max_length=50,
         verbose_name='Название категории',
     )
     slug = models.SlugField(unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Genre(models.Model):
     name = models.CharField(
-        max_length=200,
+        max_length=50,
         verbose_name='Название жанра',
     )
     slug = models.SlugField(unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Review(models.Model):
