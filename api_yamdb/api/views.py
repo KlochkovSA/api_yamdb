@@ -1,15 +1,16 @@
 from rest_framework import viewsets
-from rest_framework.pagination import LimitOffsetPagination
-
-from reviews.models import Review, Comment
-from .permissions import OwnerOrReadOnly, ReadOnly
-from .serializers import CommentSerializers, ReviewSerializers
+from rest_framework.pagination import PageNumberPagination
+from rest_framework import filters, mixins, serializers
+from reviews.models import Review, Comment, Category, Genre, Title
+from .permissions import OwnerOrReadOnly, ReadOnly, AdminPermission
+from .serializers import (ReviewSerializers, CommentSerializers,
+                          CategorySerializer, GenreSerializer, TitleSerializer)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializers
     permission_classes = (OwnerOrReadOnly,)
-    pagination_class = LimitOffsetPagination
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -28,7 +29,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CommentSerializers
     permission_classes = (OwnerOrReadOnly,)
-    pagination_class = LimitOffsetPagination
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
@@ -44,13 +45,27 @@ class CommentViewSet(viewsets.ReadOnlyModelViewSet):
         serializer.save(author=self.request.user)
 
 
-class CategoryViewSet:
-    pass
+# class CategoryViewSet(viewsets.ModelViewSet):
+
+class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
+                      mixins.DestroyModelMixin, viewsets.GenericViewSet):
+
+    serializer_class = CategorySerializer
+    queryset = Category.objects.all()
+    pagination_class = PageNumberPagination
+    permission_classes = (AdminPermission,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
-class GenreViewSet:
-    pass
+class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
+                   mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    serializer_class = GenreSerializer
+    queryset = Genre.objects.all()
+    pagination_class = PageNumberPagination
 
 
-class TitleViewSet:
-    pass
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    pagination_class = PageNumberPagination
+    serializer_class = TitleSerializer
