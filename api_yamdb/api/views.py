@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
+from reviews.models import Review, Comment
 from .permissions import OwnerOrReadOnly, ReadOnly
 from .serializers import CommentSerializers, ReviewSerializers
 
