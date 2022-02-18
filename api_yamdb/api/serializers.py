@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
+from statistics import mean
+
 from reviews.models import Category, Genre, Title, Review, Comment
 
 
@@ -24,6 +26,10 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')
+
+    def get_rating(self, obj):
+        score = Review.objects.filter(title=obj.id).score
+        return round(mean(score))
 
 
 class ReviewSerializers(serializers.ModelSerializer):

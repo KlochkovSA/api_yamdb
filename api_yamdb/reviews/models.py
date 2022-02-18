@@ -80,8 +80,7 @@ class Review(models.Model):
         related_name='review',
         verbose_name='Автор'
     )
-    score = models.IntegerField(
-        max_length=1,
+    score = models.PositiveSmallIntegerField(
         choices=SCORE_CHOICE,
         null=False
     )
