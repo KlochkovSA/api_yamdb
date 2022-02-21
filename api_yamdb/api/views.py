@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import filters, mixins, serializers
 from reviews.models import Review, Comment, Category, Genre, Title
-from .permissions import OwnerOrReadOnly, ReadOnly, AdminPermission
+from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission, AdminPermission
 from .serializers import (ReviewSerializers, CommentSerializers,
                           CategorySerializer, GenreSerializer, TitleSerializer)
 
@@ -20,6 +20,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'retrieve':
             return (ReadOnly(),)
+        if self.request.user.role == 'mr':
+            return (ModeratorPermission())
         return super().get_permissions()
 
     def perform_create(self, serializer):
@@ -39,6 +41,8 @@ class CommentViewSet(viewsets.ReadOnlyModelViewSet):
     def get_permissions(self):
         if self.action == 'retrieve':
             return (ReadOnly(),)
+        if self.request.user.role == 'mr':
+            return (ModeratorPermission())
         return super().get_permissions()
 
     def perform_create(self, serializer):
