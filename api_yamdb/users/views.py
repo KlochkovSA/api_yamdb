@@ -24,7 +24,8 @@ def get_confirmation_code():
 
 
 class Signup(APIView):
-    # permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.AllowAny,)
+
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
         if serializer.is_valid():
@@ -45,3 +46,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
     authentication_classes = (JWTAuthentication,)
     permission_classes = (permissions.IsAuthenticated, AdminPermission)
+
+
+class Profile(viewsets.GenericViewSet):
+    pass
