@@ -24,14 +24,15 @@ def get_confirmation_code():
 
 
 class Signup(APIView):
-    # permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.AllowAny,)
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
+        confirmation_code = get_confirmation_code()
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(confirmation_code=confirmation_code)
             send_mail(
                 subject='Confirmation code',
-                message=f'{get_confirmation_code()}',
+                message=f'{confirmation_code}',
                 from_email='any_mail@yandex.ru',
                 recipient_list=[serializer.data['email']],
                 fail_silently=False
