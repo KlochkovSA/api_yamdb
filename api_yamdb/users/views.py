@@ -3,20 +3,18 @@ import random
 import string
 
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status, permissions, viewsets
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
 
 from .models import User
-from .serializers import (CheckConfirmationCode, MyTokenObtainPairSerializer, SignupSerializer,
-                          UserViewSerializer)
 from .permissions import AdminPermission
-
+from .serializers import (CheckConfirmationCode, SignupSerializer,
+                          UserViewSerializer)
 
 CONFIRMATION_CODE_LEN = 20
 
@@ -44,7 +42,10 @@ class Signup(APIView):
                 fail_silently=False
             )
             return Response(data=serializer.data)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            data=serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class Token(APIView):
@@ -58,7 +59,10 @@ class Token(APIView):
             user = get_object_or_404(User, username=username)
             if confirmation_code == user.confirmation_code:
                 token = AccessToken.for_user(user)
-                return Response({'token': f'{token}'}, status=status.HTTP_200_OK)
+                return Response(
+                    {'token': f'{token}'},
+                    status=status.HTTP_200_OK
+                )
             return Response(
                 {'confirmation_code': 'Неверный код подтверждения'},
                 status=status.HTTP_400_BAD_REQUEST
