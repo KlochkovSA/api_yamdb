@@ -1,10 +1,10 @@
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
-from rest_framework import filters, mixins, serializers
+from rest_framework import filters, mixins, serializers, permissions
 from reviews.models import Review, Comment, Category, Genre, Title
-from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission #AdminPermission
+from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission, IsAdmin
 from .serializers import (ReviewSerializers, CommentSerializers,
-                          CategorySerializer, GenreSerializer, TitleSerializer)
+                          CategorySerializer, GenreSerializer, TitleSerializerGET)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -49,17 +49,20 @@ class CommentViewSet(viewsets.ReadOnlyModelViewSet):
         serializer.save(author=self.request.user)
 
 
-# class CategoryViewSet(viewsets.ModelViewSet):
-
 class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
                       mixins.DestroyModelMixin, viewsets.GenericViewSet):
 
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
     pagination_class = PageNumberPagination
-    # permission_classes = (AdminPermission,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
+
+    def get_permissions(self):
+        if self.action == 'create' or self.action == 'destroy':
+            return (IsAdmin(),)
+        return super().get_permissions()
 
 
 class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -67,9 +70,19 @@ class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     serializer_class = GenreSerializer
     queryset = Genre.objects.all()
     pagination_class = PageNumberPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+
+    def get_permissions(self):
+        if self.action == 'create' or self.action == 'destroy':
+            return (IsAdmin(),)
+        return super().get_permissions()
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     pagination_class = PageNumberPagination
-    serializer_class = TitleSerializer
+    serializer_class = TitleSerializerGET
+    permission_classes = (permissions.AllowAny,)
+
