@@ -26,7 +26,7 @@ class Title(models.Model):
         null=True,
         blank=True
     )
-    year = models.DateField(
+    year = models.IntegerField(
         'Дата публикации',
     )
     category = models.ForeignKey(
