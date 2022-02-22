@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import filters, mixins, serializers
 from reviews.models import Review, Comment, Category, Genre, Title
-from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission, AdminPermission
+from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission #AdminPermission
 from .serializers import (ReviewSerializers, CommentSerializers,
                           CategorySerializer, GenreSerializer, TitleSerializer)
 
@@ -57,7 +57,7 @@ class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
     pagination_class = PageNumberPagination
-    permission_classes = (AdminPermission,)
+    # permission_classes = (AdminPermission,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
