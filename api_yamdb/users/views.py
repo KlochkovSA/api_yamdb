@@ -1,17 +1,17 @@
 import random
 import string
 
-from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
 
 from .models import User
-from .permissions import AdminPermission
+from .permissions import IsAdmin, IsAdminOrOnlyRead, IsSuperuser
 from .serializers import (CheckConfirmationCode, SignupSerializer,
                           UserViewSerializer)
 
@@ -32,7 +32,7 @@ class Signup(APIView):
         serializer = SignupSerializer(data=request.data)
         confirmation_code = get_confirmation_code()
         if serializer.is_valid():
-            serializer.save(confirmation_code=confirmation_code)
+            serializer.save(confirmation_code=confirmation_code, role='user')
             send_mail(
                 subject='Confirmation code',
                 message=f'{confirmation_code}',
@@ -71,10 +71,27 @@ class Token(APIView):
 
 class UsersViewSet(viewsets.ModelViewSet):
     serializer_class = UserViewSerializer
-    queryset = get_user_model().objects.all()
-    authentication_classes = (JWTAuthentication,)
-    permission_classes = (permissions.IsAuthenticated, AdminPermission)
+    queryset = User.objects.all()
+    lookup_field = 'username'
+    permission_classes = (permissions.IsAuthenticated, IsSuperuser | IsAdmin,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
 
+    @action(detail=False, permission_classes=(permissions.IsAuthenticated,),
+            methods=['get', 'patch'], url_path='me')
+    def get_or_update_self(self, request):
+        if request.method != 'GET':
+            serializer = self.get_serializer(
+                instance=request.user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            if request.user.role == 'user':
+                serializer.validated_data['role'] = 'user'
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data)
 
+    
+    
 class Profile(viewsets.GenericViewSet):
     pass

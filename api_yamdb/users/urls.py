@@ -1,6 +1,5 @@
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
-from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .views import Signup, Token, UsersViewSet
 

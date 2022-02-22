@@ -1,33 +1,40 @@
+import email
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
 class User(AbstractUser):
-    ADMIN = 'ad'
-    MODERATOR = 'mr'
-    USER = 'us'
-
     ROLE_CHOICES = [
-        (ADMIN, 'admin'),
-        (MODERATOR, 'moderator'),
-        (USER, 'user'),
+        ('admin', 'admin'),
+        ('moderator', 'moderator'),
+        ('user', 'user'),
     ]
 
+    bio = models.CharField(
+        max_length=1000,
+        null=True,
+        verbose_name="User's biography"
+    )
     confirmation_code = models.CharField(
         max_length=100,
         null=True,
         verbose_name='Confirmation Code'
     )
-
     role = models.CharField(
-        max_length=2,
+        max_length=50,
         choices=ROLE_CHOICES,
-        default=USER
+        verbose_name='Role'
     )
+    username = models.CharField(max_length=100, unique=True,
+                                blank=False, null=False)
+    email = models.EmailField(max_length=250, unique=True,
+                              blank=False, null=False)
 
-    bio = models.CharField(
-        max_length=100,
-        null=True,
-        verbose_name='User biography'
-    )
-    email = models.EmailField(blank=False, null=False, unique=True)
+    @property
+    def is_admin(self):
+        return self.is_staff or self.role == 'admin'
+
+    @property
+    def is_moderator(self):
+        return self.role == 'moderator'
