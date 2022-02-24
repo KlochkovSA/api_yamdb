@@ -18,10 +18,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return new_queryset
 
     def get_permissions(self):
-        if self.action == 'retrieve':
-            return (ReadOnly(),)
-        if self.request.user.role == 'mr':
-            return (ModeratorPermission())
+        if self.request.user.is_authenticated:
+            if self.action == 'retrieve':
+                return (ReadOnly(),)
+            if self.request.user.role == 'mr':
+                return (ModeratorPermission())
         return super().get_permissions()
 
     def perform_create(self, serializer):
@@ -85,4 +86,3 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     serializer_class = TitleSerializerGET
     permission_classes = (permissions.AllowAny,)
-
