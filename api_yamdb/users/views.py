@@ -11,7 +11,8 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
 from .models import User
-from .permissions import IsAdmin, IsAdminOrOnlyRead, IsSuperuser
+from .paginations import UsersPagination
+from .permissions import IsAdmin, IsSuperuser
 from .serializers import (CheckConfirmationCode, SignupSerializer,
                           UserViewSerializer)
 
@@ -75,6 +76,8 @@ class UsersViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     permission_classes = (permissions.IsAuthenticated, IsSuperuser | IsAdmin,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('=username', )
+    pagination_class = UsersPagination
 
     @action(detail=False, permission_classes=(permissions.IsAuthenticated,),
             methods=['get', 'patch'], url_path='me')
@@ -90,8 +93,3 @@ class UsersViewSet(viewsets.ModelViewSet):
         else:
             serializer = self.get_serializer(request.user)
             return Response(serializer.data)
-
-    
-    
-class Profile(viewsets.GenericViewSet):
-    pass
