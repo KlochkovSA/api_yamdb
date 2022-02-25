@@ -33,13 +33,30 @@ class Title(models.Model):
         to='Category',
         on_delete=models.SET_NULL,
         null=True,
-        related_name='category',
+        related_name='titles',
     )
-    genre = models.ManyToManyField(to='Genre')
+    genre = models.ManyToManyField(to='Genre', through='Titles_genres')
 
     def __str__(self):
         return self.name
 
+
+class Titles_genres(models.Model):
+    genre = models.ForeignKey(
+        to='Genre',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='genre',
+    )
+    title = models.ForeignKey(
+        to='Title',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='titles',
+    )
+
+    def __str__(self):
+        return self.genre
 
 class Category(models.Model):
     name = models.CharField(
