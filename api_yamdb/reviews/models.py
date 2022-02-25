@@ -1,5 +1,4 @@
 from django.db import models
-from django.core.validators import MinLengthValidator
 
 from users.models import User
 
@@ -70,7 +69,6 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='review',
         verbose_name='Отзыв',
-        validators=[MinLengthValidator(1, message='xxx')]
     )
     text = models.TextField(
         'Отзыв',
@@ -95,12 +93,12 @@ class Review(models.Model):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ('-pub_date',)
-        # constraints = [
-            # models.UniqueConstraint(
-                # fields=['title', 'author'],
-                # name='Unique review'
-            # )
-        # ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='Unique review'
+            )
+        ]
 
     def __str__(self):
         return self.text

@@ -2,20 +2,36 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import filters, mixins, serializers, permissions
 from reviews.models import Review, Comment, Category, Genre, Title
-from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission, IsAdmin
+from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission, IsAdmin, RetrieveUpdateDestroyPermission, NewPermissions
 from .serializers import (ReviewSerializers, CommentSerializers,
                           CategorySerializer, GenreSerializer, TitleSerializerGET)
 
+from django.shortcuts import get_object_or_404
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 
-class ReviewViewSet(viewsets.ModelViewSet):
-    serializer_class = ReviewSerializers
+
+class ReviewListCreateSet(mixins.ListModelMixin,
+                          mixins.CreateModelMixin,
+                          viewsets.GenericViewSet):
     permission_classes = (OwnerOrReadOnly,)
-    pagination_class = PageNumberPagination
+    serializer_class = ReviewSerializers
+
+    def perform_create(self, serializer):
+        author = self.request.user
+        text = self.request.data.get('text')
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        reviews = Review.objects.filter(author=author, title=title)
+        if reviews.count() > 0:
+            return True
+
+        serializer.save(title=title, author=author, text=text)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        new_queryset = Review.objects.filter(title=title_id)
-        return new_queryset
+        title = get_object_or_404(Title, id=title_id)
+        queryset = title.review.all()
+        return queryset
 
     def get_permissions(self):
         if self.request.user.is_authenticated:
@@ -25,8 +41,32 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 return (ModeratorPermission())
         return super().get_permissions()
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+
+class ReviewRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    serializer_class = ReviewSerializers
+    permission_classes = (OwnerOrReadOnly,)
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        queryset = title.review.all()
+        return queryset
+
+    def get_object(self):
+        obj = get_object_or_404(
+            self.get_queryset(),
+            pk=self.kwargs["review_id"]
+        )
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (ReadOnly())
+        if self.request.user.is_authenticated:
+            if self.request.user.role == 'mr':
+                return (ModeratorPermission())
+        return super().get_permissions()
 
 
 class CommentViewSet(viewsets.ReadOnlyModelViewSet):
@@ -40,10 +80,11 @@ class CommentViewSet(viewsets.ReadOnlyModelViewSet):
         return new_queryset
 
     def get_permissions(self):
-        if self.action == 'retrieve':
-            return (ReadOnly(),)
-        if self.request.user.role == 'mr':
-            return (ModeratorPermission())
+        if self.request.user.is_authenticated:
+            if self.action == 'retrieve':
+                return (ReadOnly(),)
+            if self.request.user.role == 'mr':
+                return (ModeratorPermission())
         return super().get_permissions()
 
     def perform_create(self, serializer):

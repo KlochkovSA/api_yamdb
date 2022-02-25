@@ -30,3 +30,18 @@ class ModeratorPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return request.user.role == 'mr'
+
+
+class RetrieveUpdateDestroyPermission(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+
+        if (request.method in ['PUT', 'PATCH', 'DELETE']
+                and request.user.is_authenticated):
+            return (
+                obj.author == request.user
+                or request.user.role == 'admin'
+                or request.user.role == 'mr'
+            )
+        elif request.method in ['GET']:
+            return True
