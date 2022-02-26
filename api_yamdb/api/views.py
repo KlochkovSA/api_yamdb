@@ -1,10 +1,12 @@
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
-from rest_framework import filters, mixins, serializers, permissions
+from rest_framework import filters, mixins
 from reviews.models import Review, Comment, Category, Genre, Title
+
 from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission, IsAdmin
 from .serializers import (ReviewSerializers, CommentSerializers,
-                          CategorySerializer, GenreSerializer, TitleSerializerGET)
+                          CategorySerializer, GenreSerializer, TitleSerializerGET,
+                          TitleSerializerPOST)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -81,8 +83,34 @@ class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
     pagination_class = PageNumberPagination
-    serializer_class = TitleSerializerGET
-    permission_classes = (permissions.AllowAny,)
+    lookup_url_kwarg = 'titles_id'
+
+    def get_serializer_class(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return TitleSerializerGET
+        return TitleSerializerPOST
+
+    def get_queryset(self):
+        queryset = Title.objects.all()
+        category = self.request.query_params.get('category')
+        genre = self.request.query_params.get('genre')
+        name = self.request.query_params.get('name')
+        year = self.request.query_params.get('year')
+        if category:
+            queryset = queryset.filter(category__slug=category)
+        elif genre:
+            queryset = queryset.filter(genre__slug=genre)
+        elif name:
+            queryset = queryset.filter(name__contains=name)
+        elif year:
+            queryset = queryset.filter(year=year)
+        return queryset
+
+    def get_permissions(self):
+        if (self.action == 'create'
+                or self.action == 'partial_update'
+                or self.action == 'destroy'):
+            return (IsAdmin(),)
+        return super().get_permissions()
 
