@@ -3,7 +3,7 @@ import string
 
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
+# from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -74,7 +74,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     lookup_field = 'username'
     permission_classes = (permissions.IsAuthenticated, IsSuperuser | IsAdmin,)
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    # filter_backends = (DjangoFilterBackend, filters.SearchFilter)
 
     @action(detail=False, permission_classes=(permissions.IsAuthenticated,),
             methods=['get', 'patch'], url_path='me')
@@ -91,7 +91,6 @@ class UsersViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(request.user)
             return Response(serializer.data)
 
-    
-    
+
 class Profile(viewsets.GenericViewSet):
     pass

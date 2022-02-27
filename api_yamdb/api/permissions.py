@@ -16,6 +16,9 @@ class ReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.method in permissions.SAFE_METHODS
 
+    def has_object_permission(self, request, view, obj):
+        return request.method in permissions.SAFE_METHODS
+
 
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -45,3 +48,12 @@ class RetrieveUpdateDestroyPermission(permissions.BasePermission):
             )
         elif request.method in ['GET']:
             return True
+
+
+class ReviewPermissions(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return (request.method in permissions.SAFE_METHODS)
+
+    def has_object_permission(self, request, view, obj):
+        return obj.author == request.user

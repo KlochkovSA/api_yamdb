@@ -282,6 +282,7 @@ class Test05ReviewAPI:
             'возвращаете данные объекта. Значение `text` изменено.'
         )
         response = admin_client.get(f'/api/v1/titles/{titles[0]["id"]}/')
+        print(response.content)
         data = response.json()
         assert data.get('rating') == 7, (
             'Проверьте, что при GET запросе `/api/v1/titles/{title_id}/` '

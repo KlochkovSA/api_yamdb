@@ -2,6 +2,8 @@ from django.db import models
 
 from users.models import User
 
+from django.core.validators import MaxValueValidator, MinValueValidator
+
 SCORE_CHOICE = (
     (1, 1),
     (2, 2),
@@ -80,9 +82,12 @@ class Review(models.Model):
         related_name='review',
         verbose_name='Автор'
     )
-    score = models.PositiveSmallIntegerField(
-        choices=SCORE_CHOICE,
-        null=False
+    score = models.IntegerField(
+        validators=[
+            MaxValueValidator(10),
+            MinValueValidator(1),
+        ],
+        verbose_name='Рейтинг'
     )
     pub_date = models.DateTimeField(
         'Дата публикации',

@@ -23,7 +23,7 @@ urlpatterns = [
     path('v1/', include(router.urls)),
     path('v1/', include('users.urls')),
     path(
-        'v1/titles/<title_id>/reviews/<review_id>/',
+        r'v1/titles/<title_id>/reviews/<review_id>/',
         ReviewRetrieveUpdateDestroyAPIView.as_view(),
         name='review')
 ]

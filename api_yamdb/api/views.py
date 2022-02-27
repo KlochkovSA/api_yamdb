@@ -2,12 +2,14 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import filters, mixins, serializers, permissions
 from reviews.models import Review, Comment, Category, Genre, Title
-from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission, IsAdmin, RetrieveUpdateDestroyPermission, NewPermissions
+from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission, IsAdmin, ReviewPermissions, RetrieveUpdateDestroyPermission
 from .serializers import (ReviewSerializers, CommentSerializers,
                           CategorySerializer, GenreSerializer, TitleSerializerGET)
 
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
+
+from rest_framework import permissions
 
 
 class ReviewListCreateSet(mixins.ListModelMixin,
@@ -44,7 +46,7 @@ class ReviewListCreateSet(mixins.ListModelMixin,
 
 class ReviewRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = ReviewSerializers
-    permission_classes = (OwnerOrReadOnly,)
+    permission_classes = (RetrieveUpdateDestroyPermission,)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -62,10 +64,7 @@ class ReviewRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
     def get_permissions(self):
         if self.request.method == 'GET':
-            return (ReadOnly())
-        if self.request.user.is_authenticated:
-            if self.request.user.role == 'mr':
-                return (ModeratorPermission())
+            return (ReadOnly(),)
         return super().get_permissions()
 
 
