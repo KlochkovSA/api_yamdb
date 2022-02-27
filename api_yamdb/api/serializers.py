@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from rest_framework.serializers import PrimaryKeyRelatedField
+from rest_framework.validators import UniqueTogetherValidator
 import datetime as dt
 from statistics import mean
-
+from rest_framework import response
 from reviews.models import (Category, Comment, Genre,
                             Title, Titles_genres, Review)
 
@@ -65,29 +67,18 @@ class TitleSerializerGET(serializers.ModelSerializer):
         rating = []
         for review in reviews:
             rating.append(review.score)
-            return round(mean(rating))
+        return round(mean(rating))
 
 
 class ReviewSerializers(serializers.ModelSerializer):
-    author = SlugRelatedField(
+    author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
         default=serializers.CurrentUserDefault())
 
     class Meta:
         model = Review
-        fields = ('id', 'title', 'text', 'author', 'pub_date',)
-
-    # Проверка уникального отзыва
-    def create(self, validated_data):
-        title_data = validated_data.get('title')
-        author_data = serializers.CurrentUserDefault()
-        review = Review.objects.filter(title=title_data, author=author_data)
-        if review.exists():
-            raise OverflowError('Нельзя написать больше одного отзыва')
-        else:
-            new_review = Review.objects.create(**validated_data)
-            return new_review
+        fields = ('id', 'text', 'score', 'author', 'pub_date')
 
 
 class CommentSerializers(serializers.ModelSerializer):
@@ -97,5 +88,5 @@ class CommentSerializers(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault())
 
     class Meta:
-        models = Comment
-        fields = ('id', 'review', 'text', 'author', 'pub_date',)
+        model = Comment
+        fields = ('id', 'text', 'author', 'pub_date',)
