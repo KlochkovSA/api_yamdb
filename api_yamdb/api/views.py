@@ -1,15 +1,13 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import filters, mixins, viewsets
 from rest_framework.pagination import PageNumberPagination
-from rest_framework import filters, mixins
 from rest_framework.validators import ValidationError
 
 from reviews.models import Review, Comment, Category, Genre, Title
-
 from .permissions import IsAdmin, OwnerAndStaffPermission
-from .serializers import (ReviewSerializers, CommentSerializers,
-                          CategorySerializer, GenreSerializer, TitleSerializerGET,
-                          TitleSerializerPOST)
+from .serializers import (CommentSerializers, CategorySerializer,
+                          GenreSerializer, ReviewSerializers,
+                          TitleSerializerGET, TitleSerializerPOST)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -22,7 +20,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'partial_update' or self.action == 'destroy':
-            return [OwnerAndStaffPermission(),]
+            return [OwnerAndStaffPermission(), ]
         return super().get_permissions()
 
     def perform_create(self, serializer):
@@ -40,12 +38,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
-        new_queryset = Comment.objects.filter(review=review_id)
-        return new_queryset
+        return Comment.objects.filter(review=review_id)
 
     def get_permissions(self):
         if self.action == 'partial_update' or self.action == 'destroy':
-            return [OwnerAndStaffPermission(),]
+            return [OwnerAndStaffPermission(), ]
         return super().get_permissions()
 
     def perform_create(self, serializer):
@@ -119,4 +116,3 @@ class TitleViewSet(viewsets.ModelViewSet):
                 or self.action == 'destroy'):
             return (IsAdmin(),)
         return super().get_permissions()
-

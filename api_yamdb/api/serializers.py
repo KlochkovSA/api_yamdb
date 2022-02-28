@@ -1,12 +1,11 @@
-from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
-from rest_framework.serializers import PrimaryKeyRelatedField
-from rest_framework.validators import UniqueTogetherValidator
 import datetime as dt
+from rest_framework import serializers
+
+from rest_framework.relations import SlugRelatedField
 from statistics import mean
-from rest_framework import response
-from reviews.models import (Category, Comment, Genre,
-                            Title, Titles_genres, Review)
+
+from reviews.models import (Category, Comment, Genre, Title, TitlesGenres,
+                            Review)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -26,11 +25,11 @@ class TitleSerializerPOST(serializers.ModelSerializer):
         many=True,
         slug_field='slug',
         queryset=Genre.objects.all()
-     )
+    )
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all()
-     )
+    )
 
     class Meta:
         model = Title
@@ -41,7 +40,7 @@ class TitleSerializerPOST(serializers.ModelSerializer):
         genres = validated_data.pop('genre')
         title = Title.objects.create(**validated_data)
         for genre in genres:
-            Titles_genres.objects.create(
+            TitlesGenres.objects.create(
                 genre=genre, title=title)
         return title
 

@@ -35,13 +35,16 @@ class Title(models.Model):
         null=True,
         related_name='titles',
     )
-    genre = models.ManyToManyField(to='Genre', through='Titles_genres')
+    genre = models.ManyToManyField(to='Genre', through='TitlesGenres')
 
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ('id',)
 
-class Titles_genres(models.Model):
+
+class TitlesGenres(models.Model):
     genre = models.ForeignKey(
         to='Genre',
         on_delete=models.CASCADE,
@@ -58,6 +61,10 @@ class Titles_genres(models.Model):
     def __str__(self):
         return self.genre
 
+    class Meta:
+        ordering = ('id',)
+
+
 class Category(models.Model):
     name = models.CharField(
         max_length=50,
@@ -67,6 +74,9 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ('name', 'slug')
 
 
 class Genre(models.Model):
@@ -78,6 +88,9 @@ class Genre(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ('name', 'slug')
 
 
 class Review(models.Model):
