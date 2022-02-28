@@ -6,11 +6,11 @@ class IsAdmin(permissions.BasePermission):
         return request.user.is_authenticated and request.user.is_admin
 
 
-class IsModerator(permissions.BasePermission):
+class OwnerAndStaffPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        return request.user.is_authenticated and request.user.is_admin
+        has_auth = request.user.is_authenticated
+        is_owner = has_auth and obj.author == request.user
+        is_admin = has_auth and request.user.is_admin
+        is_moderator = has_auth and request.user.is_moderator
 
-
-class IsOwner(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return obj.author == request.user
+        return is_owner or is_moderator or is_admin

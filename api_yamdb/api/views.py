@@ -6,7 +6,7 @@ from rest_framework.validators import ValidationError
 
 from reviews.models import Review, Comment, Category, Genre, Title
 
-from .permissions import IsAdmin, IsModerator, IsOwner
+from .permissions import IsAdmin, OwnerAndStaffPermission
 from .serializers import (ReviewSerializers, CommentSerializers,
                           CategorySerializer, GenreSerializer, TitleSerializerGET,
                           TitleSerializerPOST)
@@ -22,8 +22,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'partial_update' or self.action == 'destroy':
-            return [IsOwner() or IsAdmin() or IsModerator()]
-            # return [IsOwner | IsModerator | IsAdmin]
+            return [OwnerAndStaffPermission(),]
         return super().get_permissions()
 
     def perform_create(self, serializer):
@@ -46,7 +45,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'partial_update' or self.action == 'destroy':
-            return [IsAdmin() or IsOwner() or IsModerator()]
+            return [OwnerAndStaffPermission(),]
         return super().get_permissions()
 
     def perform_create(self, serializer):
