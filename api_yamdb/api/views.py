@@ -22,14 +22,15 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'partial_update' or self.action == 'destroy':
-            return [IsOwner() or IsModerator() or IsAdmin()]
+            return [IsOwner() or IsAdmin() or IsModerator()]
+            # return [IsOwner | IsModerator | IsAdmin]
         return super().get_permissions()
 
     def perform_create(self, serializer):
         title_id = self.kwargs['title_id']
         title = get_object_or_404(Title, id=title_id)
         review = Review.objects.filter(author=self.request.user, title=title)
-        if review.exists():
+        if review.count() != 0:
             raise ValidationError('Нельзя написать больше одного отзыва')
         serializer.save(author=self.request.user, title=title)
 
@@ -49,9 +50,12 @@ class CommentViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer):
-        review_id = self.kwargs['review_id']
-        review = get_object_or_404(Review, review_id)
-        serializer.save(author=self.request.user, review=review)
+        author = self.request.user
+        text = self.request.data.get('text')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id)
+
+        serializer.save(review=review, author=author, text=text)
 
 
 class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,

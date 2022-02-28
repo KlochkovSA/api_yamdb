@@ -64,10 +64,13 @@ class TitleSerializerGET(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         reviews = Review.objects.filter(title=obj.id)
-        rating = []
-        for review in reviews:
-            rating.append(review.score)
-        return round(mean(rating))
+        if reviews.count() == 0:
+            return None
+        else:
+            rating = []
+            for review in reviews:
+                rating.append(review.score)
+            return round(mean(rating))
 
 
 class ReviewSerializers(serializers.ModelSerializer):
