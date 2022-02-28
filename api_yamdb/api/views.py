@@ -2,12 +2,13 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import filters, mixins, serializers, permissions
 from reviews.models import Review, Comment, Category, Genre, Title
-from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission, IsAdmin, ReviewPermissions, RetrieveUpdateDestroyPermission
+from .permissions import OwnerOrReadOnly, ReadOnly, ModeratorPermission, IsAdmin, RetrieveUpdateDestroyPermission
 from .serializers import (ReviewSerializers, CommentSerializers,
                           CategorySerializer, GenreSerializer, TitleSerializerGET)
 
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
+from django.core.exceptions import ValidationError
 
 from rest_framework import permissions
 
@@ -23,17 +24,16 @@ class ReviewListCreateSet(mixins.ListModelMixin,
         text = self.request.data.get('text')
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
-        reviews = Review.objects.filter(author=author, title=title)
-        if reviews.count() > 0:
-            return True
-
+        review = Review.objects.filter(author=self.request.user, title=title)
+        if review.exists():
+            raise ValidationError('Нельзя написать больше одного отзыва')
         serializer.save(title=title, author=author, text=text)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
-        queryset = title.review.all()
-        return queryset
+        new_queryset = title.review.all()
+        return new_queryset
 
     def get_permissions(self):
         if self.request.user.is_authenticated:
@@ -68,10 +68,19 @@ class ReviewRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         return super().get_permissions()
 
 
-class CommentViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = CommentSerializers
+class CommentListCreateSet(mixins.ListModelMixin,
+                           mixins.CreateModelMixin,
+                           viewsets.GenericViewSet):
     permission_classes = (OwnerOrReadOnly,)
-    pagination_class = PageNumberPagination
+    serializer_class = CommentSerializers
+
+    def perform_create(self, serializer):
+        author = self.request.user
+        text = self.request.data.get('text')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id)
+
+        serializer.save(review=review, author=author, text=text)
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
@@ -86,8 +95,29 @@ class CommentViewSet(viewsets.ReadOnlyModelViewSet):
                 return (ModeratorPermission())
         return super().get_permissions()
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+
+class CommentRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    serializer_class = CommentSerializers
+    permission_classes = (OwnerOrReadOnly,)
+
+    def get_object(self):
+        obj = get_object_or_404(
+            self.get_queryset(),
+            pk=self.kwargs["comment_id"]
+        )
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def get_queryset(self):
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id)
+        new_queryset = review.comments
+        return new_queryset
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (ReadOnly(),)
+        return super().get_permissions()
 
 
 class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,

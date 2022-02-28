@@ -50,6 +50,15 @@ class ReviewSerializers(serializers.ModelSerializer):
         model = Review
         exclude = ('title',)
 
+    # def validate(self, data):
+        # view = self.context['view']
+        # title_id = view.kwargs.get('title_id')
+        # author = self.context['request'].user
+        # if Review.objects.filter(title=title_id, author=author).exists:
+            # raise serializers.ValidationError(
+                # 'Нельзя написать больше одного отзыва')
+        # return data
+
 
 class CommentSerializers(serializers.ModelSerializer):
     author = SlugRelatedField(
@@ -58,5 +67,5 @@ class CommentSerializers(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault())
 
     class Meta:
-        models = Comment
+        model = Comment
         fields = ('id', 'text', 'author', 'pub_date',)
