@@ -1,10 +1,10 @@
 import datetime as dt
-from rest_framework import serializers
 
+from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from statistics import mean
 
-from reviews.models import (Category, Comment, Genre, Title, TitlesGenres,
+from reviews.models import (Category, Comment, Genre, Title,
                             Review)
 
 
@@ -36,18 +36,10 @@ class TitleSerializerPOST(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'description', 'genre',
                   'category')
 
-    def create(self, validated_data):
-        genres = validated_data.pop('genre')
-        title = Title.objects.create(**validated_data)
-        for genre in genres:
-            TitlesGenres.objects.create(
-                genre=genre, title=title)
-        return title
-
     def validate_year(self, value):
         current_year = dt.datetime.today().year
-        if value > current_year:
-            raise serializers.ValidationError('Проверьте год рождения!')
+        if current_year < value < 0:
+            raise serializers.ValidationError('Проверьте год создания!')
         return value
 
 
