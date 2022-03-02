@@ -1,9 +1,11 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.validators import ValidationError
 
 from reviews.models import Review, Comment, Category, Genre, Title
+from .filters import TitleFilter
 from .permissions import IsAdmin, OwnerAndStaffPermission
 from .serializers import (CommentSerializers, CategorySerializer,
                           GenreSerializer, ReviewSerializers,
@@ -88,27 +90,14 @@ class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
 class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     lookup_url_kwarg = 'titles_id'
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
+    queryset = Title.objects.all()
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
             return TitleSerializerGET
         return TitleSerializerPOST
-
-    def get_queryset(self):
-        queryset = Title.objects.all()
-        category = self.request.query_params.get('category')
-        genre = self.request.query_params.get('genre')
-        name = self.request.query_params.get('name')
-        year = self.request.query_params.get('year')
-        if category:
-            queryset = queryset.filter(category__slug=category)
-        elif genre:
-            queryset = queryset.filter(genre__slug=genre)
-        elif name:
-            queryset = queryset.filter(name__contains=name)
-        elif year:
-            queryset = queryset.filter(year=year)
-        return queryset
 
     def get_permissions(self):
         if (self.action == 'create'
