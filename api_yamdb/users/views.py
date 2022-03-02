@@ -1,6 +1,5 @@
-import random
-import string
-
+from api_yamdb.settings import EMAIL
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -10,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
-from .models import User
+from .models import Roles, User
 from .paginations import UsersPagination
 from .permissions import IsAdmin, IsSuperuser
 from .serializers import (CheckConfirmationCode, SignupSerializer,
@@ -19,33 +18,23 @@ from .serializers import (CheckConfirmationCode, SignupSerializer,
 CONFIRMATION_CODE_LEN = 20
 
 
-def get_confirmation_code():
-    return ''.join(random.choices(
-        string.digits + string.ascii_uppercase,
-        k=CONFIRMATION_CODE_LEN
-    ))
-
-
 class Signup(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
-        confirmation_code = get_confirmation_code()
-        if serializer.is_valid():
-            serializer.save(confirmation_code=confirmation_code, role='user')
-            send_mail(
-                subject='Confirmation code',
-                message=f'{confirmation_code}',
-                from_email='any_mail@yandex.ru',
-                recipient_list=[serializer.data['email']],
-                fail_silently=False
-            )
-            return Response(data=serializer.data)
-        return Response(
-            data=serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+        serializer.is_valid(raise_exception=True)
+        confirmation_code = default_token_generator.make_token(
+            serializer.save(role=Roles.USER)
         )
+        send_mail(
+            subject='Confirmation code',
+            message=f'{confirmation_code}',
+            from_email=EMAIL,
+            recipient_list=[serializer.data['email']],
+            fail_silently=False
+        )
+        return Response(data=serializer.data)
 
 
 class Token(APIView):
@@ -53,21 +42,20 @@ class Token(APIView):
 
     def post(self, request):
         serializer = CheckConfirmationCode(data=request.data)
-        if serializer.is_valid():
-            username = serializer.data.get('username')
-            confirmation_code = serializer.data.get('confirmation_code')
-            user = get_object_or_404(User, username=username)
-            if confirmation_code == user.confirmation_code:
-                token = AccessToken.for_user(user)
-                return Response(
-                    {'token': f'{token}'},
-                    status=status.HTTP_200_OK
-                )
+        serializer.is_valid(raise_exception=True)
+        username = serializer.data.get('username')
+        confirmation_code = serializer.data.get('confirmation_code')
+        user = get_object_or_404(User, username=username)
+        if default_token_generator.check_token(user, confirmation_code):
+            token = AccessToken.for_user(user)
             return Response(
-                {'confirmation_code': 'Неверный код подтверждения'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'token': f'{token}'},
+                status=status.HTTP_200_OK
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {'confirmation_code': 'Неверный код подтверждения'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -86,10 +74,9 @@ class UsersViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(
                 instance=request.user, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            if request.user.role == 'user':
-                serializer.validated_data['role'] = 'user'
+            if request.user.role == Roles.USER:
+                serializer.validated_data['role'] = Roles.USER
             serializer.save()
-            return Response(serializer.data)
-        else:
-            serializer = self.get_serializer(request.user)
-            return Response(serializer.data)
+            return Response(serializer.data)       
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
