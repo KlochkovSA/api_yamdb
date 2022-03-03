@@ -42,7 +42,8 @@ class CommentViewSet(viewsets.ModelViewSet):
         author = self.request.user
         text = self.request.data.get('text')
         review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(Review, id=review_id)
+        title_id = self.kwargs.get('title_id')
+        review = get_object_or_404(Review, id=review_id, title__id=title_id)
 
         serializer.save(review=review, author=author, text=text)
 
