@@ -9,8 +9,6 @@ class IsAdmin(permissions.BasePermission):
 class OwnerAndStaffPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         has_auth = request.user.is_authenticated
-        is_owner = obj.author == request.user
-        is_admin = request.user.is_admin
-        is_moderator = request.user.is_moderator
-
-        return has_auth and (is_owner or is_moderator or is_admin)
+        return has_auth and (obj.author == request.user
+                             or request.user.is_moderator
+                             or request.user.is_admin)
