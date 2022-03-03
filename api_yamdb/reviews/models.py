@@ -1,6 +1,7 @@
 from django.db import models
 
 from users.models import User
+from .validators import validate_year
 
 SCORE_CHOICE = (
     (1, 1),
@@ -28,6 +29,7 @@ class Title(models.Model):
     )
     year = models.IntegerField(
         'Дата публикации',
+        validators=[validate_year]
     )
     category = models.ForeignKey(
         to='Category',
@@ -42,6 +44,8 @@ class Title(models.Model):
 
     class Meta:
         ordering = ('id',)
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
 
 
 class TitlesGenres(models.Model):
@@ -77,6 +81,8 @@ class Category(models.Model):
 
     class Meta:
         ordering = ('name', 'slug')
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
 
 class Genre(models.Model):
@@ -91,6 +97,8 @@ class Genre(models.Model):
 
     class Meta:
         ordering = ('name', 'slug')
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
 
 
 class Review(models.Model):
@@ -112,7 +120,6 @@ class Review(models.Model):
     )
     score = models.PositiveSmallIntegerField(
         choices=SCORE_CHOICE,
-        null=False
     )
     pub_date = models.DateTimeField(
         'Дата публикации',
