@@ -2,7 +2,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, viewsets
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.validators import ValidationError
 
 from reviews.models import Review, Comment, Category, Genre, Title
 from .filters import TitleFilter
@@ -24,14 +23,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if self.action == 'partial_update' or self.action == 'destroy':
             return [OwnerAndStaffPermission(), ]
         return super().get_permissions()
-
-    def perform_create(self, serializer):
-        title_id = self.kwargs['title_id']
-        title = get_object_or_404(Title, id=title_id)
-        review = Review.objects.filter(author=self.request.user, title=title)
-        if review.count() != 0:
-            raise ValidationError('Нельзя написать больше одного отзыва')
-        serializer.save(author=self.request.user, title=title)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -56,35 +47,27 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(review=review, author=author, text=text)
 
 
-class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                      mixins.DestroyModelMixin, viewsets.GenericViewSet):
+class CustomViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
+                    mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    pagination_class = PageNumberPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
+    def get_permissions(self):
+        if self.action == 'create' or self.action == 'destroy':
+            return (IsAdmin(),)
+        return super().get_permissions()
+
+
+class CategoryViewSet(CustomViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
-    pagination_class = PageNumberPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
-
-    def get_permissions(self):
-        if self.action == 'create' or self.action == 'destroy':
-            return (IsAdmin(),)
-        return super().get_permissions()
 
 
-class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                   mixins.DestroyModelMixin, viewsets.GenericViewSet):
+class GenreViewSet(CustomViewSet):
     serializer_class = GenreSerializer
     queryset = Genre.objects.all()
-    pagination_class = PageNumberPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
-
-    def get_permissions(self):
-        if self.action == 'create' or self.action == 'destroy':
-            return (IsAdmin(),)
-        return super().get_permissions()
 
 
 class TitleViewSet(viewsets.ModelViewSet):

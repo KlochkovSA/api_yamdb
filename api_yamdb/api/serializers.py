@@ -1,5 +1,6 @@
 import datetime as dt
 
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from statistics import mean
@@ -73,6 +74,21 @@ class ReviewSerializers(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ('id', 'text', 'score', 'author', 'pub_date')
+
+    # Проверка уникального отзыва
+    def create(self, validated_data):
+        title_id = self.context['view'].kwargs['title_id']
+        author_data = self.context['request'].user
+        title = get_object_or_404(Title, id=title_id)
+        review = Review.objects.filter(title=title, author=author_data)
+        if review.exists():
+            error_message = 'Нельзя написать больше одного отзыва'
+            raise serializers.ValidationError(error_message)
+        else:
+            new_review = Review.objects.create(title=title,
+                                               author=author_data,
+                                               **validated_data)
+            return new_review
 
 
 class CommentSerializers(serializers.ModelSerializer):
