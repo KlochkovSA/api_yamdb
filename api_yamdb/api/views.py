@@ -2,6 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, viewsets
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from reviews.models import Review, Comment, Category, Genre, Title
 from .filters import TitleFilter
@@ -14,29 +15,21 @@ from .serializers import (CommentSerializers, CategorySerializer,
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializers
     pagination_class = PageNumberPagination
+    permission_classes = (IsAuthenticatedOrReadOnly, OwnerAndStaffPermission,)
 
     def get_queryset(self):
         title_id = self.kwargs['title_id']
         return Review.objects.filter(title=title_id)
 
-    def get_permissions(self):
-        if self.action == 'partial_update' or self.action == 'destroy':
-            return [OwnerAndStaffPermission(), ]
-        return super().get_permissions()
-
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializers
     pagination_class = PageNumberPagination
+    permission_classes = (IsAuthenticatedOrReadOnly, OwnerAndStaffPermission,)
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
         return Comment.objects.filter(review=review_id)
-
-    def get_permissions(self):
-        if self.action == 'partial_update' or self.action == 'destroy':
-            return [OwnerAndStaffPermission(), ]
-        return super().get_permissions()
 
     def perform_create(self, serializer):
         author = self.request.user
