@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
+
 from .models import Roles, User
 from .paginations import UsersPagination
 from .permissions import IsAdmin, IsSuperuser
@@ -77,6 +78,6 @@ class UsersViewSet(viewsets.ModelViewSet):
             if request.user.role == Roles.USER:
                 serializer.validated_data['role'] = Roles.USER
             serializer.save()
-            return Response(serializer.data)       
+            return Response(serializer.data)
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
