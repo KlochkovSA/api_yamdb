@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, mixins, viewsets
@@ -69,7 +70,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     lookup_url_kwarg = 'titles_id'
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('review__score'))
+    serializer_class = TitleSerializerPOST
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
