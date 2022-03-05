@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
-
 from .models import Roles, User
 from .paginations import UsersPagination
 from .permissions import IsAdmin, IsSuperuser
@@ -71,13 +70,13 @@ class UsersViewSet(viewsets.ModelViewSet):
     @action(detail=False, permission_classes=(permissions.IsAuthenticated,),
             methods=['get', 'patch'], url_path='me')
     def get_or_update_self(self, request):
-        if request.method != 'GET':
-            serializer = self.get_serializer(
-                instance=request.user, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            if request.user.role == Roles.USER:
-                serializer.validated_data['role'] = Roles.USER
-            serializer.save()
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
             return Response(serializer.data)
-        serializer = self.get_serializer(request.user)
+        serializer = self.get_serializer(
+            instance=request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        if request.user.role == Roles.USER:
+            serializer.validated_data['role'] = Roles.USER
+        serializer.save()
         return Response(serializer.data)
