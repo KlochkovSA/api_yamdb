@@ -6,6 +6,7 @@ from rest_framework.relations import SlugRelatedField
 
 from reviews.models import (Category, Comment, Genre, Title,
                             Review)
+from .validators import validate_review
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -70,13 +71,10 @@ class ReviewSerializers(serializers.ModelSerializer):
         author_data = self.context['request'].user
         title = get_object_or_404(Title, id=title_id)
         review = Review.objects.filter(title=title, author=author_data)
-        if review.exists():
-            error_message = 'Нельзя написать больше одного отзыва'
-            raise serializers.ValidationError(error_message)
-        new_review = Review.objects.create(title=title,
-                                           author=author_data,
-                                           **validated_data)
-        return new_review
+        validate_review(review)
+        return Review.objects.create(title=title,
+                                     author=author_data,
+                                     **validated_data)
 
 
 class CommentSerializers(serializers.ModelSerializer):
