@@ -73,11 +73,10 @@ class ReviewSerializers(serializers.ModelSerializer):
         if review.exists():
             error_message = 'Нельзя написать больше одного отзыва'
             raise serializers.ValidationError(error_message)
-        else:
-            new_review = Review.objects.create(title=title,
-                                               author=author_data,
-                                               **validated_data)
-            return new_review
+        new_review = Review.objects.create(title=title,
+                                           author=author_data,
+                                           **validated_data)
+        return new_review
 
 
 class CommentSerializers(serializers.ModelSerializer):
