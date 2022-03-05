@@ -39,13 +39,13 @@ class Title(models.Model):
     )
     genre = models.ManyToManyField(to='Genre', through='TitlesGenres')
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         ordering = ('id',)
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
+
+    def __str__(self):
+        return self.name
 
 
 class TitlesGenres(models.Model):
@@ -62,11 +62,11 @@ class TitlesGenres(models.Model):
         related_name='titles',
     )
 
-    def __str__(self):
-        return self.genre
-
     class Meta:
         ordering = ('id',)
+
+    def __str__(self):
+        return self.genre
 
 
 class Category(models.Model):
@@ -76,13 +76,13 @@ class Category(models.Model):
     )
     slug = models.SlugField(unique=True)
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         ordering = ('name', 'slug')
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
+
+    def __str__(self):
+        return self.name
 
 
 class Genre(models.Model):
@@ -92,13 +92,13 @@ class Genre(models.Model):
     )
     slug = models.SlugField(unique=True)
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         ordering = ('name', 'slug')
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
+
+    def __str__(self):
+        return self.name
 
 
 class Review(models.Model):
