@@ -43,6 +43,7 @@ class Title(models.Model):
         ordering = ('id',)
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
+        db_table = 'titles'
 
     def __str__(self):
         return self.name
@@ -64,6 +65,7 @@ class TitlesGenres(models.Model):
 
     class Meta:
         ordering = ('id',)
+        db_table = 'genre_title'
 
     def __str__(self):
         return self.genre
@@ -80,6 +82,7 @@ class Category(models.Model):
         ordering = ('name', 'slug')
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
+        db_table = 'category'
 
     def __str__(self):
         return self.name
@@ -96,6 +99,7 @@ class Genre(models.Model):
         ordering = ('name', 'slug')
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
+        db_table = 'genre'
 
     def __str__(self):
         return self.name
@@ -106,7 +110,7 @@ class Review(models.Model):
         Title,
         on_delete=models.CASCADE,
         related_name='review',
-        verbose_name='Отзыв',
+        verbose_name='Произведение',
     )
     text = models.TextField(
         'Отзыв',
@@ -120,6 +124,7 @@ class Review(models.Model):
     )
     score = models.PositiveSmallIntegerField(
         choices=SCORE_CHOICE,
+        verbose_name='Оценка'
     )
     pub_date = models.DateTimeField(
         'Дата публикации',
@@ -136,6 +141,7 @@ class Review(models.Model):
                 name='Unique review'
             )
         ]
+        db_table = 'review'
 
     def __str__(self):
         return self.text
@@ -167,6 +173,7 @@ class Comment(models.Model):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         ordering = ('-pub_date',)
+        db_table = 'comments'
 
     def __str__(self):
         return self.text
