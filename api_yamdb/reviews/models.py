@@ -34,10 +34,15 @@ class Title(models.Model):
     category = models.ForeignKey(
         to='Category',
         on_delete=models.SET_NULL,
+        verbose_name='Категория',
         null=True,
         related_name='titles',
     )
-    genre = models.ManyToManyField(to='Genre', through='TitlesGenres')
+    genre = models.ManyToManyField(to='Genre',
+                                   db_table='titles_genre',
+                                   related_name='titles',
+                                   verbose_name='Жанр',
+                                   blank=False)
 
     class Meta:
         ordering = ('id',)
@@ -47,28 +52,6 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class TitlesGenres(models.Model):
-    genre = models.ForeignKey(
-        to='Genre',
-        on_delete=models.CASCADE,
-        null=True,
-        related_name='genre',
-    )
-    title = models.ForeignKey(
-        to='Title',
-        on_delete=models.CASCADE,
-        null=True,
-        related_name='titles',
-    )
-
-    class Meta:
-        ordering = ('id',)
-        db_table = 'genre_title'
-
-    def __str__(self):
-        return self.genre
 
 
 class Category(models.Model):
