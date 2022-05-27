@@ -1,4 +1,3 @@
-from api_yamdb.settings import EMAIL
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -8,6 +7,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
+
+from api_yamdb.settings import EMAIL
 
 from .models import Roles, User
 from .paginations import UsersPagination

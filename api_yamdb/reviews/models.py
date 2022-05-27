@@ -1,6 +1,6 @@
 from django.db import models
-
 from users.models import User
+
 from .validators import validate_year
 
 SCORE_CHOICE = (
@@ -39,7 +39,7 @@ class Title(models.Model):
         related_name='titles',
     )
     genre = models.ManyToManyField(to='Genre',
-                                   db_table='titles_genre',
+                                   db_table='genre_title',
                                    related_name='titles',
                                    verbose_name='Жанр',
                                    blank=False)
