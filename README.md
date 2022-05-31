@@ -56,3 +56,10 @@ GET  NAME_OF_YOUR_DOMAIN/api/v1/titles/{title_id}/reviews/{review_id}/comments/{
   "pub_date": "2019-08-24T14:15:22Z"
 }
 ```
+
+## Авторы
+
+
+- [KlochkovSA](https://github.com/KlochkovSA)
+- [nekron2323](https://github.com/nekron2323)
+- [Ilia-Pringless](https://github.com/Ilia-Pringless)
